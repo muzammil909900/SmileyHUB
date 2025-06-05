@@ -1,59 +1,41 @@
--- Script in ServerScriptService
-local Players = game:GetService("Players")
-local StarterGui = game:GetService("StarterGui")
-local DataStoreService = game:GetService("DataStoreService")
-local BanStore = DataStoreService:GetDataStore("BanList")
+--// Basic GUI Creator for "Ban All" -- Use in an executor with caution
 
--- Check if player is banned on join
-Players.PlayerAdded:Connect(function(player)
-	local isBanned = BanStore:GetAsync("Ban_" .. player.UserId)
-	if isBanned then
-		player:Kick("You are permanently banned from this game.")
-	end
+local player = game.Players.LocalPlayer
 
-	-- Create ban GUI for the player
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "BanGUI"
-	gui.ResetOnSpawn = false
+-- Create GUI
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "BanGui"
 
-	local layout = Instance.new("UIListLayout")
-	layout.Parent = gui
-	layout.Padding = UDim.new(0, 5)
-	layout.HorizontalAlignment = Enum.HorizontalAlignment.Left
-	layout.VerticalAlignment = Enum.VerticalAlignment.Top
+local title = Instance.new("TextLabel", gui)
+title.Size = UDim2.new(0, 200, 0, 50)
+title.Position = UDim2.new(0.5, -100, 0.4, -60)
+title.Text = "Ban"
+title.TextColor3 = Color3.new(1, 0, 0)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 30
+title.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 
-	for _, target in pairs(Players:GetPlayers()) do
-		if target ~= player then
-			local button = Instance.new("TextButton")
-			button.Size = UDim2.new(0, 200, 0, 40)
-			button.Text = "BAN: " .. target.Name
-			button.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-			button.TextColor3 = Color3.new(1, 1, 1)
-			button.Parent = gui
+local corner1 = Instance.new("UICorner", title)
+corner1.CornerRadius = UDim.new(0, 10)
 
-			button.MouseButton1Click:Connect(function()
-				BanStore:SetAsync("Ban_" .. target.UserId, true)
-				target:Kick("You were banned.")
-			end)
-		end
-	end
+-- Create Ban Button
+local button = Instance.new("TextButton", gui)
+button.Size = UDim2.new(0, 200, 0, 40)
+button.Position = UDim2.new(0.5, -100, 0.4, 0)
+button.Text = "Ban All"
+button.TextColor3 = Color3.new(1, 1, 1)
+button.Font = Enum.Font.GothamBold
+button.TextSize = 20
+button.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 
-	-- Update when new players join
-	Players.PlayerAdded:Connect(function(newPlayer)
-		if newPlayer ~= player and player.Parent then
-			local button = Instance.new("TextButton")
-			button.Size = UDim2.new(0, 200, 0, 40)
-			button.Text = "BAN: " .. newPlayer.Name
-			button.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
-			button.TextColor3 = Color3.new(1, 1, 1)
-			button.Parent = gui
+local corner2 = Instance.new("UICorner", button)
+corner2.CornerRadius = UDim.new(0, 10)
 
-			button.MouseButton1Click:Connect(function()
-				BanStore:SetAsync("Ban_" .. newPlayer.UserId, true)
-				newPlayer:Kick("You were banned.")
-			end)
-		end
-	end)
-
-	gui.Parent = player:WaitForChild("PlayerGui")
+-- Ban logic
+button.MouseButton1Click:Connect(function()
+    for _, p in pairs(game.Players:GetPlayers()) do
+        if p ~= player then
+            p:Kick("Banned by owner")
+        end
+    end
 end)
