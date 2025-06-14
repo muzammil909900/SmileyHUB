@@ -28,13 +28,13 @@ local function Notify(title, msg)
 end
 
 -- Tabs
-local MovementTab = MainWindow:CreateTab("Movement", 0)
-local PlayerTab = MainWindow:CreateTab("Player", 0)
-local TeleportTab = MainWindow:CreateTab("Teleport", 0)
-local ServerTab = MainWindow:CreateTab("Server", 0)
-local FunTab = MainWindow:CreateTab("Fun", 0)
-local UtilityTab = MainWindow:CreateTab("Utility", 0)
-local VisualTab = MainWindow:CreateTab("Visual", 0)
+local MovementTab = MainWindow:CreateTab("Movement", 4483362458) -- running
+local PlayerTab = MainWindow:CreateTab("Player", 9219179595) -- user
+local TeleportTab = MainWindow:CreateTab("Teleport", 6035196984) -- arrow
+local ServerTab = MainWindow:CreateTab("Server", 6035047409) -- server
+local FunTab = MainWindow:CreateTab("Fun", 4483361897) -- game controller
+local UtilityTab = MainWindow:CreateTab("Utility", 6031280882) -- gear
+local VisualTab = MainWindow:CreateTab("Visual", 6031075931) -- eye
 
 -- Visual Tab Commands
 VisualTab:CreateToggle({
