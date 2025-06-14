@@ -229,6 +229,50 @@ ServerTab:CreateButton({
 
 -- TELEPORT TAB COMMANDS
 
+local selectedPlayer = nil
+
+TeleportTab:CreateDropdown({
+    Name = "Select Player to Goto",
+    Options = {},
+    CurrentOption = "",
+    Description = "Choose a player to teleport to",
+    Callback = function(Selection)
+        selectedPlayer = Selection
+    end
+})
+
+TeleportTab:CreateButton({
+    Name = "Goto Selected Player",
+    Description = "Teleports to the selected player.",
+    Callback = function()
+        local target = game.Players:FindFirstChild(selectedPlayer)
+        if target and target.Character and target.Character:FindFirstChild("HumanoidRootPart") then
+            game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = target.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+        end
+    end
+})
+
+TeleportTab:CreateButton({
+    Name = "🔁 Refresh Player List",
+    Description = "Reload the player dropdown list.",
+    Callback = function()
+        local dropdown = nil
+        for _, v in pairs(TeleportTab.Flags) do
+            if type(v) == "table" and v.SetOptions then
+                dropdown = v
+                break
+            end
+        end
+        if dropdown then
+            local names = {}
+            for _, plr in pairs(game.Players:GetPlayers()) do
+                table.insert(names, plr.Name)
+            end
+            dropdown:SetOptions(names)
+        end
+    end
+})
+
 TeleportTab:CreateButton({
     Name = "Teleport Tool",
     Description = "Gives you a tool to click-teleport anywhere.",
@@ -297,6 +341,112 @@ TeleportTab:CreateButton({
 })
 
 -- FUN TAB EXTRA
+
+FunTab:CreateInput({
+    Name = "Music ID (Loop)",
+    PlaceholderText = "Enter a music sound ID",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(id)
+        if _G.MusicLoop then
+            _G.MusicLoop:Destroy()
+            _G.MusicLoop = nil
+        end
+        local s = Instance.new("Sound", game.Workspace)
+        s.Name = "MusicLoop"
+        s.SoundId = "rbxassetid://" .. id
+        s.Volume = 5
+        s.Looped = true
+        s:Play()
+        _G.MusicLoop = s
+    end
+})
+
+FunTab:CreateToggle({
+    Name = "Rainbow Chat",
+    CurrentValue = false,
+    Description = "Chat messages cycle through colors (client-side)",
+    Callback = function(state)
+        _G.RainbowChat = state
+        while _G.RainbowChat do
+            local colors = {"red", "orange", "yellow", "green", "blue", "purple"}
+            for _, color in ipairs(colors) do
+                if not _G.RainbowChat then break end
+                local msg = string.format("<font color=\"%s\">Rainbow Chat!</font>", color)
+                game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(msg, "All")
+                task.wait(0.5)
+            end
+        end
+    end
+})
+
+PlayerTab:CreateButton({
+    Name = "Force Sit All",
+    Description = "Forces every player to sit (FE local only)",
+    Callback = function()
+        for _, plr in pairs(game.Players:GetPlayers()) do
+            if plr.Character and plr.Character:FindFirstChild("Humanoid") then
+                plr.Character.Humanoid.Sit = true
+            end
+        end
+    end
+})
+
+FunTab:CreateToggle({
+    Name = "Loop Fling Nearest",
+    CurrentValue = false,
+    Description = "Constantly fling the closest player.",
+    Callback = function(state)
+        _G.LoopFling = state
+        while _G.LoopFling do
+            local lp = game.Players.LocalPlayer
+            local root = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+            local closest, dist = nil, math.huge
+            for _, p in pairs(game.Players:GetPlayers()) do
+                if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    local d = (p.Character.HumanoidRootPart.Position - root.Position).Magnitude
+                    if d < dist then dist = d closest = p end
+                end
+            end
+            if closest then
+                root.Velocity = (closest.Character.HumanoidRootPart.Position - root.Position).Unit * 500
+            end
+            task.wait(0.2)
+        end
+    end
+})
+
+FunTab:CreateToggle({
+    Name = "Annoy Random Player",
+    CurrentValue = false,
+    Description = "Repeats annoying jump/sit on a random player.",
+    Callback = function(state)
+        _G.Annoying = state
+        while _G.Annoying do
+            local players = game.Players:GetPlayers()
+            local target = players[math.random(1, #players)]
+            if target and target.Character and target.Character:FindFirstChild("Humanoid") then
+                target.Character.Humanoid.Sit = true
+            end
+            task.wait(1)
+        end
+    end
+})
+
+FunTab:CreateToggle({
+    Name = "SpinBot",
+    CurrentValue = false,
+    Description = "Spin your character forever.",
+    Callback = function(state)
+        _G.SpinBot = state
+        while _G.SpinBot do
+            local char = game.Players.LocalPlayer.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                char.HumanoidRootPart.CFrame *= CFrame.Angles(0, math.rad(15), 0)
+            end
+            task.wait(0.1)
+        end
+    end
+})
 FunTab:CreateToggle({
     Name = "Loop Kill Nearest Player",
     CurrentValue = false,
