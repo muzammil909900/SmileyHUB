@@ -74,6 +74,268 @@ MovementTab:CreateToggle({
 })
 
 -- Add Core Commands Below
+
+-- MOVEMENT
+MovementTab:CreateToggle({
+    Name = "Noclip",
+    CurrentValue = false,
+    Description = "Walk through walls and objects.",
+    Callback = function(state)
+        _G.Noclip = state
+        local plr = game.Players.LocalPlayer
+        game:GetService("RunService").Stepped:Connect(function()
+            if _G.Noclip and plr.Character then
+                for _, v in pairs(plr.Character:GetDescendants()) do
+                    if v:IsA("BasePart") then
+                        v.CanCollide = false
+                    end
+                end
+            end
+        end)
+    end
+})
+
+-- PLAYER TAB
+PlayerTab:CreateButton({
+    Name = "Anti-Ragdoll",
+    Description = "Removes ragdoll parts from your character.",
+    Callback = function()
+        for _, v in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+            if v:IsA("JointInstance") or v:IsA("BallSocketConstraint") then
+                v:Destroy()
+            end
+        end
+    end
+})
+
+-- FUN TAB
+FunTab:CreateButton({
+    Name = "Flash",
+    Description = "Rapidly changes screen brightness to flash",
+    Callback = function()
+        for i = 1, 5 do
+            game.Lighting.Brightness = 10
+            wait(0.1)
+            game.Lighting.Brightness = 1
+            wait(0.1)
+        end
+    end
+})
+
+-- VISUAL TAB
+local VisualTab = Window:CreateTab("Visual", 6031075931)
+VisualTab:CreateToggle({
+    Name = "ESP Boxes",
+    CurrentValue = false,
+    Description = "Show red boxes on other players",
+    Callback = function(v)
+        if v then
+            for _, plr in pairs(game.Players:GetPlayers()) do
+                if plr ~= game.Players.LocalPlayer and plr.Character then
+                    local box = Instance.new("BoxHandleAdornment")
+                    box.Name = "ESPBox"
+                    box.Adornee = plr.Character:FindFirstChild("HumanoidRootPart")
+                    box.AlwaysOnTop = true
+                    box.ZIndex = 5
+                    box.Size = Vector3.new(4,6,1)
+                    box.Color3 = Color3.new(1,0,0)
+                    box.Transparency = 0.4
+                    box.Parent = plr.Character
+                end
+            end
+        else
+            for _, plr in pairs(game.Players:GetPlayers()) do
+                if plr.Character then
+                    local b = plr.Character:FindFirstChild("ESPBox")
+                    if b then b:Destroy() end
+                end
+            end
+        end
+    end
+})
+
+-- UTILITY TAB
+UtilityTab:CreateInput({
+    Name = "Chat Spammer",
+    PlaceholderText = "Type message to auto spam",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(text)
+        _G.ChatSpamMessage = text
+    end
+})
+
+UtilityTab:CreateSlider({
+    Name = "Chat Spam Delay",
+    Range = {1, 10},
+    Increment = 1,
+    CurrentValue = 2,
+    Description = "Time between messages",
+    Callback = function(v)
+        _G.ChatDelay = v
+    end
+})
+
+UtilityTab:CreateToggle({
+    Name = "Enable Chat Spam",
+    CurrentValue = false,
+    Description = "Send chat messages repeatedly",
+    Callback = function(state)
+        _G.ChatSpamming = state
+        while _G.ChatSpamming do
+            if _G.ChatSpamMessage and _G.ChatSpamMessage ~= "" then
+                game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(_G.ChatSpamMessage, "All")
+            end
+            task.wait(_G.ChatDelay or 2)
+        end
+    end
+})
+
+-- PLAYER TAB
+PlayerTab:CreateButton({
+    Name = "BTools",
+    Description = "Gives Building Tools (FE limited)",
+    Callback = function()
+        for i = 2, 4 do
+            local tool = Instance.new("HopperBin")
+            tool.BinType = i
+            tool.Parent = game.Players.LocalPlayer.Backpack
+        end
+    end
+})
+
+-- MOVEMENT
+MovementTab:CreateButton({
+    Name = "Float",
+    Description = "Float in midair with a BodyPosition",
+    Callback = function()
+        local root = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if root then
+            local bp = Instance.new("BodyPosition", root)
+            bp.Position = root.Position + Vector3.new(0, 20, 0)
+            bp.MaxForce = Vector3.new(1e6, 1e6, 1e6)
+            bp.P = 5000
+        end
+    end
+})
+
+-- SERVER
+ServerTab:CreateButton({
+    Name = "Crash Client",
+    Description = "Crashes your own client (simulated lag)",
+    Callback = function()
+        while true do end
+    end
+})
+
+-- TELEPORT TAB COMMANDS
+
+TeleportTab:CreateButton({
+    Name = "Teleport Tool",
+    Description = "Gives you a tool to click-teleport anywhere.",
+    Callback = function()
+        local tool = Instance.new("Tool")
+        tool.RequiresHandle = false
+        tool.Name = "TP Tool"
+        tool.Activated:Connect(function()
+            local mouse = game.Players.LocalPlayer:GetMouse()
+            if mouse then
+                local char = game.Players.LocalPlayer.Character
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    char:FindFirstChild("HumanoidRootPart").CFrame = CFrame.new(mouse.Hit.Position + Vector3.new(0, 3, 0))
+                end
+            end
+        end)
+        tool.Parent = game.Players.LocalPlayer.Backpack
+    end
+})
+TeleportTab:CreateButton({
+    Name = "Goto Nearest Player",
+    Description = "Teleport to the closest player in the game.",
+    Callback = function()
+        local lp = game.Players.LocalPlayer
+        local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+        local closest, dist = nil, math.huge
+        for _, p in pairs(game.Players:GetPlayers()) do
+            if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                local d = (p.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
+                if d < dist then
+                    dist = d
+                    closest = p
+                end
+            end
+        end
+        if closest then
+            hrp.CFrame = closest.Character.HumanoidRootPart.CFrame + Vector3.new(0, 3, 0)
+        end
+    end
+})
+
+TeleportTab:CreateButton({
+    Name = "Bring All Players",
+    Description = "Teleport all players to your position.",
+    Callback = function()
+        local lp = game.Players.LocalPlayer
+        local root = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+        if root then
+            for _, p in pairs(game.Players:GetPlayers()) do
+                if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    p.Character:PivotTo(root.CFrame + Vector3.new(0, 5, 0))
+                end
+            end
+        end
+    end
+})
+
+TeleportTab:CreateButton({
+    Name = "Rejoin Server",
+    Description = "Reconnect to this current game server.",
+    Callback = function()
+        local TeleportService = game:GetService("TeleportService")
+        local Players = game:GetService("Players")
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, Players.LocalPlayer)
+    end
+})
+
+-- FUN TAB EXTRA
+FunTab:CreateToggle({
+    Name = "Loop Kill Nearest Player",
+    CurrentValue = false,
+    Description = "Constantly kill the nearest player (can cause lag).",
+    Callback = function(state)
+        _G.LoopKill = state
+        while _G.LoopKill do
+            local lp = game.Players.LocalPlayer
+            local char = lp.Character
+            local hrp = char and char:FindFirstChild("HumanoidRootPart")
+            local closest, dist = nil, math.huge
+            for _, p in pairs(game.Players:GetPlayers()) do
+                if p ~= lp and p.Character and p.Character:FindFirstChild("Humanoid") then
+                    local d = (p.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
+                    if d < dist then
+                        dist = d
+                        closest = p
+                    end
+                end
+            end
+            if closest and closest.Character then
+                closest.Character:BreakJoints()
+            end
+            task.wait(1)
+        end
+    end
+})
+
+FunTab:CreateInput({
+    Name = "Play Sound ID",
+    PlaceholderText = "Enter Roblox sound ID",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(id)
+        local s = Instance.new("Sound", game.Workspace)
+        s.SoundId = "rbxassetid://" .. id
+        s.Volume = 10
+        s:Play()
+    end
+})
 MovementTab:CreateSlider({
     Name = "WalkSpeed",
     Range = {16, 300},
