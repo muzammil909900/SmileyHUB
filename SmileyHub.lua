@@ -1,11 +1,12 @@
 -- Load Rayfield Library
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 
--- Create Window
+-- Create Window without loading icons
 local Window = Rayfield:CreateWindow({
    Name = "Infinite Yield Rebuild",
    LoadingTitle = "Loading Infinite Yield...",
    LoadingSubtitle = "Rayfield UI Version",
+   Icon = 0, -- 🛑 Disables icon loading (prevents icon.lua error)
    Theme = "DarkBlue",
    ToggleUIKeybind = "RightControl",
    ConfigurationSaving = {
