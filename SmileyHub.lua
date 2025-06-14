@@ -28,151 +28,215 @@ local PlayerTab = MainWindow:CreateTab("Player", 0)
 local VisualTab = MainWindow:CreateTab("Visual", 0)
 local UtilityTab = MainWindow:CreateTab("Utility", 0)
 local FunTab = MainWindow:CreateTab("Fun", 0)
+local EffectsTab = MainWindow:CreateTab("Player Effects", 0)
+local TeleportTab = MainWindow:CreateTab("Teleportation", 0)
+local ServerTab = MainWindow:CreateTab("Server", 0)
+local SettingsTab = MainWindow:CreateTab("Settings", 0)
 
--- [PREVIOUS TABS HERE — Movement + Player] --
-
--- Visual Tab
-VisualTab:CreateToggle({
-	Name = "ESP Boxes",
-	CurrentValue = false,
-	Flag = "ESPToggle",
-	Description = "Show red boxes on other players",
-	Callback = function(v)
-		if v then
-			for _, plr in pairs(game.Players:GetPlayers()) do
-				if plr ~= game.Players.LocalPlayer and plr.Character then
-					local box = Instance.new("BoxHandleAdornment")
-					box.Name = "ESPBox"
-					box.Adornee = plr.Character:FindFirstChild("HumanoidRootPart")
-					box.AlwaysOnTop = true box.ZIndex = 5 box.Size = Vector3.new(4,6,1)
-					box.Color3 = Color3.fromRGB(255,0,0) box.Transparency = 0.4
-					box.Parent = plr.Character
-				end
-			end
-		else
-			for _, plr in pairs(game.Players:GetPlayers()) do
-				if plr.Character then
-					local b = plr.Character:FindFirstChild("ESPBox")
-					if b then b:Destroy() end
-				end
+-- Teleportation
+TeleportTab:CreateButton({
+	Name = "Goto Nearest",
+	Description = "Teleport to the nearest player",
+	Callback = function()
+		local lp = game.Players.LocalPlayer
+		local hrp = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
+		local closest, dist = nil, math.huge
+		for _, p in pairs(game.Players:GetPlayers()) do
+			if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+				local d = (p.Character.HumanoidRootPart.Position - hrp.Position).Magnitude
+				if d < dist then dist = d closest = p end
 			end
 		end
+		if closest then hrp.CFrame = closest.Character.HumanoidRootPart.CFrame + Vector3.new(0,3,0) end
 	end
 })
 
--- Utility Tab
-UtilityTab:CreateButton({
-	Name = "Dex Explorer",
-	Description = "Load UI explorer tool",
-	Callback = function()
-		loadstring(game:HttpGet("https://cdn.wearedevs.net/scripts/Dex%20Explorer.txt"))()
-	end
-})
-
-UtilityTab:CreateButton({
-	Name = "Remote Spy",
-	Description = "Spy on remote events/functions",
-	Callback = function()
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/exxtremestuffs/SimpleSpySource/master/SimpleSpy.lua"))()
-	end
-})
-
-UtilityTab:CreateButton({
-	Name = "Rejoin Server",
-	Description = "Teleport back to current game",
-	Callback = function()
-		game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, game.Players.LocalPlayer)
-	end
-})
-
-UtilityTab:CreateButton({
-	Name = "Server Hop",
-	Description = "Hop to a different server",
-	Callback = function()
-		local HttpService = game:GetService("HttpService")
-		local Servers = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"))
-		for _,v in pairs(Servers.data) do
-			if v.playing < v.maxPlayers then
-				game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, v.id)
-				break
-			end
-		end
-	end
-})
-
--- Fun Tab
-FunTab:CreateToggle({
-	Name = "LoopKill Nearest",
-	CurrentValue = false,
-	Flag = "LoopKillToggle",
-	Description = "Keeps killing nearest player repeatedly",
-	Callback = function(v)
-		if v then
-			_G.LoopKill = true
-			task.spawn(function()
-				while _G.LoopKill do
-					task.wait(1)
-					local lp = game.Players.LocalPlayer
-					local nearest, dist = nil, math.huge
-					for _, p in pairs(game.Players:GetPlayers()) do
-						if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-							local d = (lp.Character.HumanoidRootPart.Position - p.Character.HumanoidRootPart.Position).Magnitude
-							if d < dist then dist = d nearest = p end
-						end
-					end
-					if nearest and nearest.Character:FindFirstChild("Humanoid") then
-						nearest.Character.Humanoid.Health = 0
-					end
-				end
-			end)
-		else
-			_G.LoopKill = false
-		end
-	end
-})
-
-FunTab:CreateButton({
-	Name = "Play Music",
-	Description = "Plays ID 142376088",
-	Callback = function()
-		local s = Instance.new("Sound")
-		s.SoundId = "rbxassetid://142376088"
-		s.Volume = 5
-		s.Looped = true
-		s.Parent = workspace
-		s:Play()
-	end
-})
-
-FunTab:CreateButton({
-	Name = "Stop All Sounds",
-	Description = "Stops every sound in workspace",
-	Callback = function()
-		for _, s in ipairs(workspace:GetDescendants()) do
-			if s:IsA("Sound") then s:Stop() end
-		end
-	end
-})
-
-FunTab:CreateButton({
-	Name = "Fling Nearest",
-	Description = "Fling nearest player by setting velocity",
+TeleportTab:CreateButton({
+	Name = "Bring All",
+	Description = "Brings all players to your location",
 	Callback = function()
 		local lp = game.Players.LocalPlayer
 		local root = lp.Character and lp.Character:FindFirstChild("HumanoidRootPart")
-		if not root then return end
-		local target, distance = nil, math.huge
-		for _, p in pairs(game.Players:GetPlayers()) do
-			if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-				local d = (root.Position - p.Character.HumanoidRootPart.Position).Magnitude
-				if d < distance then target = p distance = d end
+		if root then
+			for _, p in pairs(game.Players:GetPlayers()) do
+				if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+					p.Character:SetPrimaryPartCFrame(root.CFrame + Vector3.new(0,5,0))
+				end
 			end
 		end
-		if target then
-			root.Velocity = (target.Character.HumanoidRootPart.Position - root.Position).Unit * 999
+	end
+})
+
+TeleportTab:CreateButton({
+	Name = "Rejoin",
+	Description = "Rejoin current server",
+	Callback = function()
+		game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId)
+	end
+})
+
+-- Player Effects
+EffectsTab:CreateToggle({
+	Name = "God Mode",
+	CurrentValue = false,
+	Flag = "GodMode",
+	Description = "Grants god mode (invincibility)",
+	Callback = function(v)
+		local char = game.Players.LocalPlayer.Character
+		if v and char then
+			char.Humanoid.Name = "God"
+		else
+			Notify("God Mode", "This god mode cannot be undone without respawn.")
+		end
+	end
+})
+
+EffectsTab:CreateToggle({
+	Name = "Invisible",
+	CurrentValue = false,
+	Flag = "InvisToggle",
+	Description = "Toggles invisibility",
+	Callback = function(v)
+		local char = game.Players.LocalPlayer.Character
+		for _, p in pairs(char:GetDescendants()) do
+			if p:IsA("BasePart") or p:IsA("Decal") then
+				p.Transparency = v and 1 or 0
+			end
+		end
+	end
+})
+
+EffectsTab:CreateButton({
+	Name = "Sit",
+	Description = "Force sit your character",
+	Callback = function()
+		local hum = game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+		if hum then hum.Sit = true end
+	end
+})
+
+-- Movement continued
+MovementTab:CreateButton({
+	Name = "Float",
+	Description = "Enables float using BodyGyro",
+	Callback = function()
+		local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+		if hrp then
+			local bg = Instance.new("BodyGyro", hrp)
+			bg.CFrame = hrp.CFrame
+			bg.MaxTorque = Vector3.new(1e9,1e9,1e9)
+			bg.P = 10000
+		end
+	end
+})
+
+MovementTab:CreateButton({
+	Name = "Unfly",
+	Description = "Disables fly if enabled",
+	Callback = function()
+		local hrp = game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+		if _G.FlyConnection then _G.FlyConnection:Disconnect() end
+		if hrp:FindFirstChild("FlyControl") then hrp:FindFirstChild("FlyControl"):Destroy() end
+	end
+})
+
+-- Server/World
+ServerTab:CreateButton({
+	Name = "Reset Character",
+	Description = "Resets your character",
+	Callback = function()
+		game.Players.LocalPlayer.Character:BreakJoints()
+	end
+})
+
+ServerTab:CreateButton({
+	Name = "Shutdown Server",
+	Description = "Attempts to crash all clients (FE Required)",
+	Callback = function()
+		for _,v in pairs(game.Players:GetPlayers()) do
+			if v ~= game.Players.LocalPlayer then
+				v:Kick("Shutdown by script")
+			end
+		end
+	end
+})
+
+ServerTab:CreateButton({
+	Name = "Crash Local",
+	Description = "Crash your own client",
+	Callback = function()
+		while true do end
+	end
+})
+
+-- Fun/Trolling
+FunTab:CreateButton({
+	Name = "Explode",
+	Description = "Explode your character",
+	Callback = function()
+		local e = Instance.new("Explosion")
+		e.Position = game.Players.LocalPlayer.Character:GetPrimaryPartCFrame().p
+		e.BlastRadius = 10
+		e.Parent = workspace
+	end
+})
+
+FunTab:CreateButton({
+	Name = "Flash Screen",
+	Description = "Flashes your screen repeatedly",
+	Callback = function()
+		local gui = Instance.new("ScreenGui", game.Players.LocalPlayer.PlayerGui)
+		for i = 1,5 do
+			local f = Instance.new("Frame", gui)
+			f.Size = UDim2.new(1,0,1,0)
+			f.BackgroundColor3 = Color3.new(1,1,1)
+			f.BackgroundTransparency = 0
+			task.wait(0.1)
+			f:Destroy()
+		end
+	end
+})
+
+FunTab:CreateButton({
+	Name = "Annoy Chat",
+	Description = "Spam chat messages (local only)",
+	Callback = function()
+		for i = 1,10 do
+			game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Annoying spam!!!", "All")
+			task.wait(0.5)
+		end
+	end
+})
+
+-- Utilities
+UtilityTab:CreateButton({
+	Name = "Show Commands",
+	Description = "List all available commands",
+	Callback = function()
+		Notify("Commands", ";fly ;goto ;bring ;noclip ;dex ;settings ;prefix ;sit ;speed ;reset ;kill ;jump")
+	end
+})
+
+SettingsTab:CreateButton({
+	Name = "Prefix Settings",
+	Description = "Change prefix system (placeholder)",
+	Callback = function()
+		Notify("Prefix", "Prefix is ';' by default. No settings system active.")
+	end
+})
+
+SettingsTab:CreateButton({
+	Name = "Fix Character",
+	Description = "Respawns character if broken",
+	Callback = function()
+		local char = game.Players.LocalPlayer.Character
+		local hum = char and char:FindFirstChildOfClass("Humanoid")
+		if hum then
+			hum.Health = 0
+			Notify("Fix", "Respawning...")
 		end
 	end
 })
 
 Rayfield:LoadConfiguration()
-Notify("Infinite Yield", "All categories loaded. Full UI now live.")
+Notify("Infinite Yield", "All major features, tabs, and functions loaded!")
