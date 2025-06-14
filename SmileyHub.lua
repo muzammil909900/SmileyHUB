@@ -28,13 +28,13 @@ local function Notify(title, msg)
 end
 
 -- Tabs
-local MovementTab = MainWindow:CreateTab("Movement", 4483362458)
-local PlayerTab = MainWindow:CreateTab("Player", 9219179595)
-local TeleportTab = MainWindow:CreateTab("Teleport", 6035196984)
-local ServerTab = MainWindow:CreateTab("Server", 6035047409)
-local FunTab = MainWindow:CreateTab("Fun", 4483361897)
-local UtilityTab = MainWindow:CreateTab("Utility", 6031280882)
-local VisualTab = MainWindow:CreateTab("Visual", 6031075931)
+local MovementTab = MainWindow:CreateTab("Movement", 4483362458) -- 🏃
+local PlayerTab = MainWindow:CreateTab("Player", 9219179595) -- 👤
+local TeleportTab = MainWindow:CreateTab("Teleport", 6035196984) -- 📍
+local ServerTab = MainWindow:CreateTab("Server", 6035047409) -- 🖥️
+local FunTab = MainWindow:CreateTab("Fun", 4483361897) -- 🎮
+local UtilityTab = MainWindow:CreateTab("Utility", 6031280882) -- 🛠️
+local VisualTab = MainWindow:CreateTab("Visual", 6031075931) -- 👁️
 
 -- MovementTab
 MovementTab:CreateButton({ Name = "Fly", Description = "Fly using velocity", Callback = function()
