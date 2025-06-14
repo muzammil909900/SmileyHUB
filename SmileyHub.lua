@@ -5,18 +5,30 @@
 local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield", true))()
 
 local MainWindow = Rayfield:CreateWindow({
-	Name = "Infinite Yield Rebuild",
-	LoadingTitle = "Loading...",
-	LoadingSubtitle = "Rayfield Version",
-	Theme = "DarkBlue",
-	ToggleUIKeybind = Enum.KeyCode.RightControl, -- ✅ FIXED HERE
-	ConfigurationSaving = {
-		Enabled = true,
-		FileName = "InfiniteYieldRayfield"
-	},
-	Discord = { Enabled = false },
-	KeySystem = false
-})
+    Name = "$mile Hub",
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "by Smiley",
+    ConfigurationSaving = {
+       Enabled = true,
+       FolderName = nil, -- Create a custom folder for your hub/game
+       FileName = "$mile Hub"
+    },
+    Discord = {
+       Enabled = true,
+       Invite = "6rfKeYM5fv", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD.
+       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+    },
+    KeySystem = false, -- Set this to true to use our key system
+    KeySettings = {
+       Title = "McDonalds Hub",
+       Subtitle = "Key System",
+       Note = "Key: McDonalds",
+       FileName = "SiriusKey",
+       SaveKey = true,
+       GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+       Key = "McDonalds"
+    }
+ })
 
 local MainTab = MainWindow:CreateTab("Commands", 0)
 local function Notify(title, msg)
