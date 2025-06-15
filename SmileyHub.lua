@@ -1,27 +1,16 @@
--- Only works with Synapse X or any executor that supports setreadonly / getrawmetatable
-local player = game.Players.LocalPlayer
-local mt = getrawmetatable(game)
-setreadonly(mt, false)
+local remote = game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("SeedPackGiverEvent")
 
-local oldIndex = mt.__index
+-- Try with yourself as target
+remote:FireServer(game.Players.LocalPlayer)
 
-mt.__index = function(t, k)
-    if t == player and k == "UserId" then
-        return 8095632868 -- Replace this with a UserId from the authorized list
-    end
-    return oldIndex(t, k)
-end
+-- Try with a string
+remote:FireServer("Smiley9Gamerz")
 
--- Now invoke the command!
-local cmdr = game:GetService("ReplicatedStorage"):WaitForChild("CmdrClient")
-local func = cmdr:WaitForChild("CmdrFunction")
+-- Try with a number
+remote:FireServer(1)
 
-local success, result = pcall(function()
-    return func:InvokeServer("giveallseeds Smiley9Gamerz")
-end)
+-- Try with a table
+remote:FireServer({game.Players.LocalPlayer})
 
-if success then
-    print("Command executed:", result)
-else
-    warn("Command failed:", result)
-end
+-- Try with a string pack name if you suspect a specific seed type
+remote:FireServer("NightSeedPack")
