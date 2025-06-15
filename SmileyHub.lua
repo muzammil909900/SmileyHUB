@@ -7,8 +7,8 @@ local MainWindow = Rayfield:CreateWindow({
     LoadingSubtitle = "by $miley",
     ConfigurationSaving = {
        Enabled = true,
-       FolderName = nil, -- Create a custom folder for your hub/game
-       FileName = "$Smiley Hub"
+       FolderName = "InfiniteYieldRayfield", -- Create a custom folder for your hub/game
+       FileName = "Settings"
     },
     Discord = {
        Enabled = true,
