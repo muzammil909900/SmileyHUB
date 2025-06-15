@@ -3,8 +3,16 @@
 -- [SCRIPT IN CANVAS]
 
 -- Load Rayfield
-local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield", true))()
+local success, RayfieldLib = pcall(function()
+    return loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+end)
 
+if not success or not RayfieldLib then
+    warn("Failed to load Rayfield library.")
+    return
+end
+
+local Rayfield = RayfieldLib
 
 -- Window Setup
 local Window = Rayfield:CreateWindow({
@@ -27,127 +35,87 @@ local TeleportTab = Window:CreateTab("Teleport", 4483362458)
 local SettingsTab = Window:CreateTab("Settings", 4483362458)
 
 -- COMMAND BUTTONS
-CommandsTab:CreateButton({
-    Name = "Fly",
-    Callback = function()
-        loadstring(game:HttpGet('https://pastebin.com/raw/yKj9t6vX'))()
-    end,
-})
+CommandsTab:CreateButton({ Name = "Fly", Callback = function()
+    loadstring(game:HttpGet('https://pastebin.com/raw/yKj9t6vX'))()
+end })
 
-CommandsTab:CreateButton({
-    Name = "Infinite Jump",
-    Callback = function()
-        game:GetService("UserInputService").JumpRequest:Connect(function()
-            game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
-        end)
-    end,
-})
+CommandsTab:CreateButton({ Name = "Kill", Callback = function()
+    local target = game.Players:GetPlayers()[2] -- Example target
+    game.Players.LocalPlayer.Character.Humanoid:UnequipTools()
+    game:GetService("ReplicatedStorage").Events.Kill:FireServer(target)
+end })
 
-CommandsTab:CreateButton({
-    Name = "Noclip",
-    Callback = function()
-        local noclip = true
-        game:GetService('RunService').Stepped:Connect(function()
-            if noclip then
-                for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
-                    if v:IsA('BasePart') then
-                        v.CanCollide = false
-                    end
-                end
-            end
-        end)
-    end,
-})
+CommandsTab:CreateButton({ Name = "God Mode", Callback = function()
+    game.Players.LocalPlayer.Character.Humanoid.Name = "1"
+    local newHumanoid = Instance.new("Humanoid")
+    newHumanoid.Parent = game.Players.LocalPlayer.Character
+    wait(0.1)
+    game.Players.LocalPlayer.Character:FindFirstChild("1"):Destroy()
+end })
+
+CommandsTab:CreateButton({ Name = "Invisible", Callback = function()
+    local player = game.Players.LocalPlayer
+    local char = player.Character
+    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
+    char.HumanoidRootPart.CFrame = CFrame.new(9999, 9999, 9999)
+    wait(0.5)
+    char.HumanoidRootPart.CFrame = CFrame.new(0, 10, 0)
+end })
 
 -- PLAYER SLIDERS
-PlayerTab:CreateSlider({
-    Name = "WalkSpeed",
-    Range = {16, 300},
-    Increment = 1,
-    Suffix = "Speed",
-    CurrentValue = 16,
-    Flag = "WalkSpeed",
-    Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
-    end,
-})
+PlayerTab:CreateSlider({ Name = "WalkSpeed", Range = {16, 300}, Increment = 1, Suffix = "Speed", CurrentValue = 16, Flag = "WalkSpeed", Callback = function(Value)
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+end })
 
-PlayerTab:CreateSlider({
-    Name = "JumpPower",
-    Range = {50, 500},
-    Increment = 5,
-    Suffix = "Power",
-    CurrentValue = 50,
-    Flag = "JumpPower",
-    Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
-    end,
-})
+PlayerTab:CreateSlider({ Name = "JumpPower", Range = {50, 500}, Increment = 5, Suffix = "Power", CurrentValue = 50, Flag = "JumpPower", Callback = function(Value)
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+end })
 
--- UTILITY TOGGLES
-UtilityTab:CreateToggle({
-    Name = "ESP Toggle",
-    CurrentValue = false,
-    Flag = "ESP",
-    Callback = function(Value)
-        -- Placeholder for ESP function
-        print("ESP: ", Value)
-    end,
-})
+-- UTILITY TOGGLES & BUTTONS
+UtilityTab:CreateToggle({ Name = "ESP Toggle", CurrentValue = false, Flag = "ESP", Callback = function(Value)
+    print("ESP:", Value)
+end })
+
+UtilityTab:CreateButton({ Name = "Reset Character", Callback = function()
+    game.Players.LocalPlayer.Character:BreakJoints()
+end })
+
+UtilityTab:CreateButton({ Name = "Rejoin Server", Callback = function()
+    game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
+end })
 
 -- FUN BUTTONS
-FunTab:CreateButton({
-    Name = "Fling Self",
-    Callback = function()
-        local char = game.Players.LocalPlayer.Character
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            char.HumanoidRootPart.Velocity = Vector3.new(0, 200, 0)
-        end
-    end,
-})
+FunTab:CreateButton({ Name = "Fling Self", Callback = function()
+    local char = game.Players.LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        char.HumanoidRootPart.Velocity = Vector3.new(0, 200, 0)
+    end
+end })
 
--- TELEPORT BUTTONS
-TeleportTab:CreateButton({
-    Name = "Teleport to Spawn",
-    Callback = function()
-        local char = game.Players.LocalPlayer.Character
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            char:MoveTo(Vector3.new(0, 10, 0))
-        end
-    end,
-})
+FunTab:CreateButton({ Name = "Dance", Callback = function()
+    game.Players.LocalPlayer:Chat("/e dance")
+end })
 
-TeleportTab:CreateInput({
-    Name = "Teleport to Position",
-    PlaceholderText = "x, y, z",
-    RemoveTextAfterFocusLost = false,
-    Callback = function(Text)
-        local x, y, z = string.match(Text, "(%-?%d+),%s*(%-?%d+),%s*(%-?%d+)")
-        if x and y and z then
-            local pos = Vector3.new(tonumber(x), tonumber(y), tonumber(z))
-            game.Players.LocalPlayer.Character:MoveTo(pos)
-        end
-    end,
-})
+-- TELEPORT TOOLS
+TeleportTab:CreateButton({ Name = "Teleport to Spawn", Callback = function()
+    local char = game.Players.LocalPlayer.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        char:MoveTo(Vector3.new(0, 10, 0))
+    end
+end })
+
+TeleportTab:CreateInput({ Name = "Teleport to Position", PlaceholderText = "x, y, z", RemoveTextAfterFocusLost = false, Callback = function(Text)
+    local x, y, z = string.match(Text, "(%-?%d+),%s*(%-?%d+),%s*(%-?%d+)")
+    if x and y and z then
+        game.Players.LocalPlayer.Character:MoveTo(Vector3.new(tonumber(x), tonumber(y), tonumber(z)))
+    end
+end })
 
 -- SETTINGS
-SettingsTab:CreateKeybind({
-    Name = "Toggle UI",
-    CurrentKeybind = "RightControl",
-    HoldToInteract = false,
-    Flag = "UIKey",
-    Callback = function()
-        Rayfield:Toggle()
-    end,
-})
+SettingsTab:CreateKeybind({ Name = "Toggle UI", CurrentKeybind = "RightControl", HoldToInteract = false, Flag = "UIKey", Callback = function()
+    Rayfield:Toggle()
+end })
 
-SettingsTab:CreateParagraph({
-    Title = "Credits",
-    Content = "Made by Smiley9Gamerz | UI by Rayfield"
-})
+SettingsTab:CreateParagraph({ Title = "Credits", Content = "Made by Smiley9Gamerz | UI by Rayfield" })
 
-Rayfield:Notify({
-    Title = "Infinite Yield Rayfield",
-    Content = "Loaded Successfully",
-    Duration = 6
-})
+Rayfield:Notify({ Title = "Infinite Yield Rayfield", Content = "Loaded Successfully", Duration = 6 })
