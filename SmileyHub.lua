@@ -3,7 +3,8 @@
 -- [SCRIPT IN CANVAS]
 
 -- Load Rayfield
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield", true))()
+
 
 -- Window Setup
 local Window = Rayfield:CreateWindow({
