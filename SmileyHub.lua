@@ -35,87 +35,177 @@ local TeleportTab = Window:CreateTab("Teleport", 4483362458)
 local SettingsTab = Window:CreateTab("Settings", 4483362458)
 
 -- COMMAND BUTTONS
-CommandsTab:CreateButton({ Name = "Fly", Callback = function()
-    loadstring(game:HttpGet('https://pastebin.com/raw/yKj9t6vX'))()
-end })
 
-CommandsTab:CreateButton({ Name = "Kill", Callback = function()
-    local target = game.Players:GetPlayers()[2] -- Example target
-    game.Players.LocalPlayer.Character.Humanoid:UnequipTools()
-    game:GetService("ReplicatedStorage").Events.Kill:FireServer(target)
-end })
+-- Universal Command Input Parser (with player targeting and loop support)
+CommandsTab:CreateInput({
+    Name = "Command Bar",
+    PlaceholderText = "Type Infinite Yield command (e.g., ;fly me)",
+    RemoveTextAfterFocusLost = true,
+    Callback = function(input)
+        local command = string.sub(input, 1, 1) == ";" and string.sub(input, 2) or input
 
-CommandsTab:CreateButton({ Name = "God Mode", Callback = function()
-    game.Players.LocalPlayer.Character.Humanoid.Name = "1"
-    local newHumanoid = Instance.new("Humanoid")
-    newHumanoid.Parent = game.Players.LocalPlayer.Character
-    wait(0.1)
-    game.Players.LocalPlayer.Character:FindFirstChild("1"):Destroy()
-end })
+        -- Split multiple commands using "\"
+        for _, segment in ipairs(string.split(command, "\")) do
+            task.spawn(function()
+                local args = string.split(segment, " ")
+                local raw = args[1]
+                local loopCount, loopDelay = 1, 0
+                if string.find(raw, "^") then
+                    local loopArgs = string.split(raw, "^")
+                    loopCount = tonumber(loopArgs[1]) or 1
+                    loopDelay = tonumber(loopArgs[2]) or 0
+                    raw = loopArgs[3] or raw
+                end
+                local cmd = string.lower(raw)
 
-CommandsTab:CreateButton({ Name = "Invisible", Callback = function()
-    local player = game.Players.LocalPlayer
-    local char = player.Character
-    if not char or not char:FindFirstChild("HumanoidRootPart") then return end
-    char.HumanoidRootPart.CFrame = CFrame.new(9999, 9999, 9999)
-    wait(0.5)
-    char.HumanoidRootPart.CFrame = CFrame.new(0, 10, 0)
-end })
+                -- Example command mapping
+                if cmd == "fly" then
+                    loadstring(game:HttpGet("https://pastebin.com/raw/yKj9t6vX"))()
 
--- PLAYER SLIDERS
-PlayerTab:CreateSlider({ Name = "WalkSpeed", Range = {16, 300}, Increment = 1, Suffix = "Speed", CurrentValue = 16, Flag = "WalkSpeed", Callback = function(Value)
-    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
-end })
+                elseif cmd == "speed" and args[2] then
+                    local speed = tonumber(args[2])
+                    if speed then
+                        local char = game.Players.LocalPlayer.Character
+                        if char and char:FindFirstChildOfClass("Humanoid") then
+                            char:FindFirstChildOfClass("Humanoid").WalkSpeed = speed
+                        end
+                    end
 
-PlayerTab:CreateSlider({ Name = "JumpPower", Range = {50, 500}, Increment = 5, Suffix = "Power", CurrentValue = 50, Flag = "JumpPower", Callback = function(Value)
-    game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
-end })
+                elseif cmd == "jump" then
+                    local char = game.Players.LocalPlayer.Character
+                    if char and char:FindFirstChildOfClass("Humanoid") then
+                        char:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+                    end
 
--- UTILITY TOGGLES & BUTTONS
-UtilityTab:CreateToggle({ Name = "ESP Toggle", CurrentValue = false, Flag = "ESP", Callback = function(Value)
-    print("ESP:", Value)
-end })
+                elseif cmd == "invisible" then
+                    local char = game.Players.LocalPlayer.Character
+                    if char and char:FindFirstChild("HumanoidRootPart") then
+                        char.HumanoidRootPart.CFrame = CFrame.new(9999, 9999, 9999)
+                        task.wait(0.5)
+                        char.HumanoidRootPart.CFrame = CFrame.new(0, 10, 0)
+                    end
 
-UtilityTab:CreateButton({ Name = "Reset Character", Callback = function()
-    game.Players.LocalPlayer.Character:BreakJoints()
-end })
+                elseif cmd == "kill" then
+                    -- Placeholder logic: targets 2nd player in list
+                    local target = game.Players:GetPlayers()[2]
+                    if target then
+                        game.Players.LocalPlayer.Character.Humanoid:UnequipTools()
+                        if game:GetService("ReplicatedStorage"):FindFirstChild("Events") then
+                            game:GetService("ReplicatedStorage").Events:FindFirstChild("Kill"):FireServer(target)
+                        end
+                    end
+                end
 
-UtilityTab:CreateButton({ Name = "Rejoin Server", Callback = function()
-    game:GetService("TeleportService"):Teleport(game.PlaceId, game.Players.LocalPlayer)
-end })
+                -- Add additional command mappings here as needed
 
--- FUN BUTTONS
-FunTab:CreateButton({ Name = "Fling Self", Callback = function()
-    local char = game.Players.LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        char.HumanoidRootPart.Velocity = Vector3.new(0, 200, 0)
-    end
-end })
+                elseif cmd == "bring" then
+                    local targetArg = args[2] or "me"
+                    local targets = resolvePlayers(targetArg)
+                    local lplr = game.Players.LocalPlayer
+                    local root = lplr.Character and lplr.Character:FindFirstChild("HumanoidRootPart")
+                    if root then
+                        for _, plr in ipairs(targets) do
+                            local hrp = plr.Character and plr.Character:FindFirstChild("HumanoidRootPart")
+                            if hrp then hrp.CFrame = root.CFrame + Vector3.new(2, 0, 2) end
+                        end
+                    end
 
-FunTab:CreateButton({ Name = "Dance", Callback = function()
-    game.Players.LocalPlayer:Chat("/e dance")
-end })
+                elseif cmd == "tools" then
+                    local backpack = game.Players.LocalPlayer:FindFirstChild("Backpack")
+                    for _, tool in ipairs(game:GetService("ReplicatedStorage"):GetDescendants()) do
+                        if tool:IsA("Tool") then
+                            tool:Clone().Parent = backpack
+                        end
+                    end
 
--- TELEPORT TOOLS
-TeleportTab:CreateButton({ Name = "Teleport to Spawn", Callback = function()
-    local char = game.Players.LocalPlayer.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        char:MoveTo(Vector3.new(0, 10, 0))
-    end
-end })
+                elseif cmd == "btools" then
+                    for _, t in ipairs({1818, 1819, 1820}) do
+                        local tool = Instance.new("HopperBin")
+                        tool.BinType = t
+                        tool.Parent = game.Players.LocalPlayer.Backpack
+                    end
 
-TeleportTab:CreateInput({ Name = "Teleport to Position", PlaceholderText = "x, y, z", RemoveTextAfterFocusLost = false, Callback = function(Text)
-    local x, y, z = string.match(Text, "(%-?%d+),%s*(%-?%d+),%s*(%-?%d+)")
-    if x and y and z then
-        game.Players.LocalPlayer.Character:MoveTo(Vector3.new(tonumber(x), tonumber(y), tonumber(z)))
-    end
-end })
+                elseif cmd == "noclip" then
+                    game:GetService("RunService").Stepped:Connect(function()
+                        local char = game.Players.LocalPlayer.Character
+                        if char then
+                            for _, part in ipairs(char:GetDescendants()) do
+                                if part:IsA("BasePart") then
+                                    part.CanCollide = false
+                                end
+                            end
+                        end
+                    end)
 
--- SETTINGS
-SettingsTab:CreateKeybind({ Name = "Toggle UI", CurrentKeybind = "RightControl", HoldToInteract = false, Flag = "UIKey", Callback = function()
-    Rayfield:Toggle()
-end })
+                elseif cmd == "esp" then
+                    for _, plr in ipairs(game.Players:GetPlayers()) do
+                        if plr ~= game.Players.LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+                            local Billboard = Instance.new("BillboardGui", plr.Character.Head)
+                            Billboard.Size = UDim2.new(0, 100, 0, 40)
+                            Billboard.Adornee = plr.Character.Head
+                            Billboard.AlwaysOnTop = true
 
-SettingsTab:CreateParagraph({ Title = "Credits", Content = "Made by Smiley9Gamerz | UI by Rayfield" })
+                            local NameTag = Instance.new("TextLabel", Billboard)
+                            NameTag.Text = plr.Name
+                            NameTag.Size = UDim2.new(1, 0, 1, 0)
+                            NameTag.BackgroundTransparency = 1
+                            NameTag.TextColor3 = Color3.new(1, 1, 1)
+                            NameTag.TextStrokeTransparency = 0.5
+                        end
+                    end
 
-Rayfield:Notify({ Title = "Infinite Yield Rayfield", Content = "Loaded Successfully", Duration = 6 })
+                -- LOOP EXECUTION SUPPORT
+                for i = 1, loopCount do
+                    task.spawn(function()
+                        -- Add support for target resolution (e.g., all, me, others, random, etc.)
+                        local function resolvePlayers(targetStr)
+                            local players = {}
+                            local lplr = game.Players.LocalPlayer
+
+                            if not targetStr or targetStr == "me" then
+                                table.insert(players, lplr)
+                            elseif targetStr == "all" then
+                                players = game.Players:GetPlayers()
+                            elseif targetStr == "others" then
+                                for _, plr in ipairs(game.Players:GetPlayers()) do
+                                    if plr ~= lplr then
+                                        table.insert(players, plr)
+                                    end
+                                end
+                            elseif string.sub(targetStr, 1, 1) == "#" then
+                                local count = tonumber(string.sub(targetStr, 2)) or 1
+                                local all = game.Players:GetPlayers()
+                                for i = 1, math.min(count, #all) do
+                                    table.insert(players, all[i])
+                                end
+                            elseif targetStr == "random" then
+                                local all = game.Players:GetPlayers()
+                                table.insert(players, all[math.random(1, #all)])
+                            elseif string.sub(targetStr, 1, 1) == "@" then
+                                local uname = string.sub(targetStr, 2):lower()
+                                for _, plr in ipairs(game.Players:GetPlayers()) do
+                                    if plr.Name:lower():find(uname) then
+                                        table.insert(players, plr)
+                                    end
+                                end
+                            else
+                                for _, plr in ipairs(game.Players:GetPlayers()) do
+                                    if plr.DisplayName:lower():find(targetStr:lower()) or plr.Name:lower():find(targetStr:lower()) then
+                                        table.insert(players, plr)
+                                    end
+                                end
+                            end
+
+                            return players
+                        end
+
+                        local targetArg = args[2] or "me"
+                        local targets = resolvePlayers(targetArg)
+
+                        for _, plr in ipairs(targets) do
+                            if cmd == "jump" then
+                                if plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+                                    plr.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+                                end
+                            end
+                        end
