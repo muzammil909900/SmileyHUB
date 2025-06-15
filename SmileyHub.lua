@@ -1,31 +1,21 @@
+-- AH SORRY HERE IS NEW SCRIPT WITH ALL WORKING FUNCTIONS AND DIVIDED IN DIFFERENT TABS
+-- COMMANDS ARE BUTTONS ALSO THOSE WHO NEED SLIDER HAVE SLIDER
+-- [SCRIPT IN CANVAS]
+
+-- Load Rayfield
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
- 
- 
-local MainWindow = Rayfield:CreateWindow({
-    Name = "$mile Hub",
-    LoadingTitle = "Loading...",
-    LoadingSubtitle = "by $miley",
+
+-- Window Setup
+local Window = Rayfield:CreateWindow({
+    Name = "Infinite Yield Rayfield Edition",
+    LoadingTitle = "Infinite Yield",
+    LoadingSubtitle = "by Smiley9Gamerz",
     ConfigurationSaving = {
        Enabled = true,
-       FolderName = "InfiniteYieldRayfield", -- Create a custom folder for your hub/game
+       FolderName = "InfiniteYieldRayfield",
        FileName = "Settings"
-    },
-    Discord = {
-       Enabled = true,
-       Invite = "6rfKeYM5fv", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD.
-       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
-    },
-    KeySystem = false, -- Set this to true to use our key system
-    KeySettings = {
-       Title = "McDonalds Hub",
-       Subtitle = "Key System",
-       Note = "Key: McDonalds",
-       FileName = "SiriusKey",
-       SaveKey = true,
-       GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
-       Key = "McDonalds"
     }
- })
+})
 
 -- Tabs
 local CommandsTab = Window:CreateTab("Commands", 4483362458)
