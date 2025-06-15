@@ -1,18 +1,7 @@
--- AH SORRY HERE IS NEW SCRIPT WITH ALL WORKING FUNCTIONS AND DIVIDED IN DIFFERENT TABS
--- COMMANDS ARE BUTTONS ALSO THOSE WHO NEED SLIDER HAVE SLIDER
--- [SCRIPT IN CANVAS]
-
--- Load Rayfield
-local success, RayfieldLib = pcall(function()
-    return loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
-end)
-
-if not success or not RayfieldLib then
-    warn("Failed to load Rayfield library.")
-    return
-end
-
-local Rayfield = RayfieldLib
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield", true))()
+local Players = game:GetService("Players")
+local StarterGui = game:GetService("StarterGui")
+local LocalPlayer = Players.LocalPlayer
 
 -- Window Setup
 local Window = Rayfield:CreateWindow({
