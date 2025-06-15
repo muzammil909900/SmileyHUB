@@ -1,144 +1,162 @@
---[[
-Rayfield Yield - Full Rayfield Port of Infinite Yield
-This file includes a GUI-based recreation of core Infinite Yield features using Rayfield.
-Author: Smiley9Gamerz
-]]
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+ 
+ 
+local MainWindow = Rayfield:CreateWindow({
+    Name = "$mile Hub",
+    LoadingTitle = "Loading...",
+    LoadingSubtitle = "by $miley",
+    ConfigurationSaving = {
+       Enabled = true,
+       FolderName = nil, -- Create a custom folder for your hub/game
+       FileName = "$Smiley Hub"
+    },
+    Discord = {
+       Enabled = true,
+       Invite = "6rfKeYM5fv", -- The Discord invite code, do not include discord.gg/. E.g. discord.gg/ABCD would be ABCD.
+       RememberJoins = true -- Set this to false to make them join the discord every time they load it up
+    },
+    KeySystem = false, -- Set this to true to use our key system
+    KeySettings = {
+       Title = "McDonalds Hub",
+       Subtitle = "Key System",
+       Note = "Key: McDonalds",
+       FileName = "SiriusKey",
+       SaveKey = true,
+       GrabKeyFromSite = false, -- If this is true, set Key below to the RAW site you would like Rayfield to get the key from
+       Key = "McDonalds"
+    }
+ })
 
--- Load Rayfield
-loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+-- Tabs
+local CommandsTab = Window:CreateTab("Commands", 4483362458)
+local PlayerTab = Window:CreateTab("Player", 4483362458)
+local UtilityTab = Window:CreateTab("Utility", 4483362458)
+local FunTab = Window:CreateTab("Fun", 4483362458)
+local TeleportTab = Window:CreateTab("Teleport", 4483362458)
+local SettingsTab = Window:CreateTab("Settings", 4483362458)
 
-local RayfieldWindow = Rayfield:CreateWindow({
-   Name = "Rayfield Yield",
-   LoadingTitle = "Infinite Yield UI",
-   LoadingSubtitle = "Rayfield Version by Smiley9Gamerz",
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "RayfieldYield",
-      FileName = "config"
-   }
+-- COMMAND BUTTONS
+CommandsTab:CreateButton({
+    Name = "Fly",
+    Callback = function()
+        loadstring(game:HttpGet('https://pastebin.com/raw/yKj9t6vX'))()
+    end,
 })
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+CommandsTab:CreateButton({
+    Name = "Infinite Jump",
+    Callback = function()
+        game:GetService("UserInputService").JumpRequest:Connect(function()
+            game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+        end)
+    end,
+})
 
-local function notify(title, msg)
-   Rayfield:Notify({Title = title, Content = msg, Duration = 4})
-end
-
--- Core Command Executor
-local CommandTab = RayfieldWindow:CreateTab("⚙️ Commands", 4483362458)
-CommandTab:CreateInput({
-   Name = "Command Bar",
-   PlaceholderText = "e.g. fly, noclip, speed 100",
-   RemoveTextAfterFocusLost = false,
-   Callback = function(input)
-      local args = input:lower():split(" ")
-      local cmd = args[1]
-      table.remove(args, 1)
-
-      if cmd == "fly" then
-         loadstring(game:HttpGet("https://pastebin.com/raw/5G7QvM6G"))()
-         notify("Fly", "Fly enabled")
-      elseif cmd == "unfly" then
-         if _G.FlyLoop then _G.FlyLoop:Disconnect() end
-         LocalPlayer.Character.Humanoid.PlatformStand = false
-         notify("Fly", "Fly disabled")
-      elseif cmd == "noclip" then
-         game:GetService("RunService").Stepped:Connect(function()
-            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-               LocalPlayer.Character.Humanoid:ChangeState(11)
+CommandsTab:CreateButton({
+    Name = "Noclip",
+    Callback = function()
+        local noclip = true
+        game:GetService('RunService').Stepped:Connect(function()
+            if noclip then
+                for _, v in pairs(game.Players.LocalPlayer.Character:GetDescendants()) do
+                    if v:IsA('BasePart') then
+                        v.CanCollide = false
+                    end
+                end
             end
-         end)
-         notify("Noclip", "Noclip enabled")
-      elseif cmd == "speed" and tonumber(args[1]) then
-         LocalPlayer.Character.Humanoid.WalkSpeed = tonumber(args[1])
-         notify("Speed", "Set to " .. args[1])
-      elseif cmd == "jump" and tonumber(args[1]) then
-         LocalPlayer.Character.Humanoid.JumpPower = tonumber(args[1])
-         notify("JumpPower", "Set to " .. args[1])
-      elseif cmd == "re" then
-         notify("Rejoin", "Rejoining...")
-         game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer)
-      else
-         notify("Unknown", "Command not recognized")
-      end
-   end
+        end)
+    end,
 })
 
--- Movement Controls
-local MoveTab = RayfieldWindow:CreateTab("🏃 Movement", 4483362458)
-MoveTab:CreateSlider({
-   Name = "WalkSpeed",
-   Range = {16, 300},
-   Increment = 1,
-   CurrentValue = 16,
-   Callback = function(val)
-      LocalPlayer.Character.Humanoid.WalkSpeed = val
-   end,
-})
-MoveTab:CreateSlider({
-   Name = "JumpPower",
-   Range = {50, 300},
-   Increment = 5,
-   CurrentValue = 50,
-   Callback = function(val)
-      LocalPlayer.Character.Humanoid.JumpPower = val
-   end,
-})
-MoveTab:CreateToggle({
-   Name = "Infinite Jump",
-   CurrentValue = false,
-   Callback = function(state)
-      getgenv().InfJump = state
-      game:GetService("UserInputService").JumpRequest:Connect(function()
-         if getgenv().InfJump then
-            LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
-         end
-      end)
-   end,
+-- PLAYER SLIDERS
+PlayerTab:CreateSlider({
+    Name = "WalkSpeed",
+    Range = {16, 300},
+    Increment = 1,
+    Suffix = "Speed",
+    CurrentValue = 16,
+    Flag = "WalkSpeed",
+    Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+    end,
 })
 
--- Teleport to Player
-local TeleTab = RayfieldWindow:CreateTab("📦 Teleport", 4483362458)
-TeleTab:CreateInput({
-   Name = "Teleport to Player",
-   PlaceholderText = "Player name",
-   Callback = function(name)
-      local plr = Players:FindFirstChild(name)
-      if plr and plr.Character then
-         LocalPlayer.Character:MoveTo(plr.Character.HumanoidRootPart.Position)
-         notify("Teleport", "Moved to " .. name)
-      else
-         notify("Teleport", "Player not found")
-      end
-   end
+PlayerTab:CreateSlider({
+    Name = "JumpPower",
+    Range = {50, 500},
+    Increment = 5,
+    Suffix = "Power",
+    CurrentValue = 50,
+    Flag = "JumpPower",
+    Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.JumpPower = Value
+    end,
 })
 
--- Utilities Tab
-local UtilTab = RayfieldWindow:CreateTab("🧰 Utilities", 4483362458)
-UtilTab:CreateButton({
-   Name = "Rejoin",
-   Callback = function()
-      game:GetService("TeleportService"):Teleport(game.PlaceId, LocalPlayer)
-   end
-})
-UtilTab:CreateButton({
-   Name = "Server Hop",
-   Callback = function()
-      local Http = game:GetService("HttpService")
-      local Servers = Http:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")).data
-      for _,v in pairs(Servers) do
-         if v.playing < v.maxPlayers then
-            game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, v.id)
-            break
-         end
-      end
-   end
+-- UTILITY TOGGLES
+UtilityTab:CreateToggle({
+    Name = "ESP Toggle",
+    CurrentValue = false,
+    Flag = "ESP",
+    Callback = function(Value)
+        -- Placeholder for ESP function
+        print("ESP: ", Value)
+    end,
 })
 
--- Credits Tab
-local Credits = RayfieldWindow:CreateTab("📜 Credits", 4483362458)
-Credits:CreateParagraph({
-   Title = "Credits",
-   Content = "Remade by Smiley9Gamerz\nInspired by Infinite Yield\nUI: Rayfield by Sirius"
+-- FUN BUTTONS
+FunTab:CreateButton({
+    Name = "Fling Self",
+    Callback = function()
+        local char = game.Players.LocalPlayer.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            char.HumanoidRootPart.Velocity = Vector3.new(0, 200, 0)
+        end
+    end,
+})
+
+-- TELEPORT BUTTONS
+TeleportTab:CreateButton({
+    Name = "Teleport to Spawn",
+    Callback = function()
+        local char = game.Players.LocalPlayer.Character
+        if char and char:FindFirstChild("HumanoidRootPart") then
+            char:MoveTo(Vector3.new(0, 10, 0))
+        end
+    end,
+})
+
+TeleportTab:CreateInput({
+    Name = "Teleport to Position",
+    PlaceholderText = "x, y, z",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(Text)
+        local x, y, z = string.match(Text, "(%-?%d+),%s*(%-?%d+),%s*(%-?%d+)")
+        if x and y and z then
+            local pos = Vector3.new(tonumber(x), tonumber(y), tonumber(z))
+            game.Players.LocalPlayer.Character:MoveTo(pos)
+        end
+    end,
+})
+
+-- SETTINGS
+SettingsTab:CreateKeybind({
+    Name = "Toggle UI",
+    CurrentKeybind = "RightControl",
+    HoldToInteract = false,
+    Flag = "UIKey",
+    Callback = function()
+        Rayfield:Toggle()
+    end,
+})
+
+SettingsTab:CreateParagraph({
+    Title = "Credits",
+    Content = "Made by Smiley9Gamerz | UI by Rayfield"
+})
+
+Rayfield:Notify({
+    Title = "Infinite Yield Rayfield",
+    Content = "Loaded Successfully",
+    Duration = 6
 })
